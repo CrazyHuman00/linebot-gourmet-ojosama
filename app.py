@@ -5,18 +5,18 @@
 app.py : 近くのカレー店を検索してくれるお嬢様LINEBot
 """
 
-import config     # config.pyのインポート
+import config                               # config.pyのインポート
 
-import requests
-import urllib.parse
-from flask import Flask, request, abort
-from linebot import (
+import random                               # 乱数のインポート
+import requests                             # requestsのインポート
+from flask import Flask, request, abort     # Flaskのインポート
+from linebot import (                       # linebotAPIのインポート
     LineBotApi, WebhookHandler
 )
-from linebot.exceptions import (
+from linebot.exceptions import (            # linebotAPIにおけるwebhookのインポート
     InvalidSignatureError
 )
-from linebot.models import (
+from linebot.models import (                # linebotのmodelsパッケージ
     CarouselColumn, CarouselTemplate, FollowEvent,
     LocationMessage, MessageEvent, TemplateSendMessage,
     TextMessage, TextSendMessage, UnfollowEvent, URITemplateAction
@@ -24,15 +24,18 @@ from linebot.models import (
 
 app = Flask(__name__)
 
-line_bot_api = LineBotApi(config.LINE_CHANNEL_ACCESS_TOKEN)  # config.pyで設定したチャネルアクセストークン
-handler = WebhookHandler(config.LINE_CHANNEL_SECRET)         # config.pyで設定したチャネルシークレット
+line_bot_api = LineBotApi(config.LINE_CHANNEL_ACCESS_TOKEN) # config.pyで設定したチャネルアクセストークン
+handler = WebhookHandler(config.LINE_CHANNEL_SECRET)        # config.pyで設定したチャネルシークレット
 
-no_hit_message = "近くにカレー屋さんはないようです"
-not_found_message = """
-申し訳ありません、データを取得できませんでした。
-少し時間を空けて、もう一度試してみてください。
-"""
-DAMMY_URL = "https://canbus.com/blog/wp-content/uploads/2018/02/2015-tenpo.jpg"
+# メッセージ
+no_hit_message = "近くにカレー屋さんはないようです"              # ヒットしなかった時のメッセージ
+not_found_message = "申し訳ありません、データを取得できませんでした。少し時間を空けて、もう一度試してみてください。"                                                           # 見つからなかった時のメッセージ
+
+
+
+# ホットペッパーAPI取得のための情報
+URL = "http://webservice.recruit.co.jp/hotpepper/gourmet/v1/"  # リクエストURL
+API_KEY = config.API_KEY                                       # APIKEY
 
 
 # テスト用
@@ -48,17 +51,16 @@ def test():
 
 # 関数の呼び出し処理
 @app.route("/callback")
-# コールバック関数
 def callback():
     """ コールバック関数
 
     Returns:
         str : ステータスコード
     """
-    # get X-Line-Signature header value
+    # X-Line-Signature header valueを取得
     signature = request.headers['X-Line-Signature']
 
-    # get request body as text
+    # bodyを取得
     body = request.get_data(as_text=True)
     app.logger.info("Request body: " + body)
 
@@ -72,39 +74,41 @@ def callback():
     return 'OK'
 
 
-# ホットペッパーAPIを使って検索
 def search_rest(latitude, longitude):
-    """ APIからカレーをもとに緯度経度を取得する
+    """ APIを使ってカラー店を元に緯度経度を取得する
 
     Args:
         latitude (_type_): _description_
         longitude (_type_): _description_
 
-    Raises:
-        Exception: _description_
-        Exception: _description_
-        Exception: _description_
 
     Returns:
         _type_: _description_
     """
-    url = "https://webservice.recruit.co.jp/hotpepper/shop/v1/"
-    params = {}
-    params['latitude'] = latitude
-    params['longitude'] = longitude
-    params['range'] = 3
-    params['genre'] = "カレー"
-    response = requests.get(url, params)
-    results = response.json()
-    if "error" in results:
-        if "message" in results:
-            raise Exception("{}".format(results["message"]))
-        else:
-            raise Exception(not_found_message)
-    total_hit_count = results.get("total_hit_count", 0)
-    if total_hit_count < 1:
-        raise Exception(no_hit_message)
-    return results
+
+    # 検索クエリからbodyを作成(条件をここで絞る)
+    body = {
+        'key': API_KEY,
+        'keyword': 'カレー店',
+        'format': 'json',
+        'count': 15,
+        'lat': latitude,
+        'lng': longitude
+    }
+
+    response = requests.get(URL, body)
+    datum = response.json()
+    stores = datum['results']['shop']
+    select_shop = random.sample(stores, 10)
+    for store_info in select_shop:
+        genre = store_info['genre']['name']
+        name = store_info['name']
+        print(genre, name)
 
 
-#
+
+
+# メッセージをやり取りする処理
+@handler.add(MessageEvent, message=LocationMessage)
+def handle_location_message(event):
+    a = 10
