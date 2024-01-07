@@ -10,6 +10,7 @@ body = {
     'keyword': 'カレー',
     'address': '京都府',
     'format': 'json',
+    'count': 30,
 }
 
 

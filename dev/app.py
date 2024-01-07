@@ -10,7 +10,6 @@ __version__ = '3.9.15'
 __date__ = '2023/12/1'
 
 import json
-import random
 import requests
 
 from flask import Flask, request, abort
@@ -82,7 +81,7 @@ def callback() -> str:
     return "OK"
 
 
-def search_curry(latitude, longitude, address_name):
+def search_curry_shop(latitude, longitude, address_name):
     """
     APIを使ってカラー店を元に緯度経度を取得する
 
@@ -102,17 +101,18 @@ def search_curry(latitude, longitude, address_name):
     elements = {
         'key': api_key,
         'keyword': 'カレー',
-        'address': '京都府',
+        'address': address_name,
         'format': 'json',
         'lat': latitude,
-        'lng': longitude
+        'lng': longitude,
+        'count': 30
     }
 
     response = requests.get(url, elements)
     datum = response.json()
 
     try:
-        stores = datum['results']['shop']['mobile_access']
+        stores = datum['results']['shop']
     except KeyError:
         print("Error: Unable to retrieve shop information from the response.")
         return []
@@ -125,11 +125,22 @@ def handle_location_message(event):
     user_latitude = event.message.latitude
     user_longitude = event.message.longitude
     address_name = event.message.text
-    stores = search_curry(user_latitude, user_longitude, address_name)
+    stores = search_curry_shop(user_latitude, user_longitude, address_name)
+
+    if stores is None:
+        LINE_BOT_API.reply_message(
+            event.reply_token,
+            TextSendMessage(text="近くにカレー屋さんがないみたですの。申し訳ございませんわ。")
+        )
+    genre = stores['genre']['name']
+
     LINE_BOT_API.reply_message(
         event.reply_token,
         TextSendMessage(text="このような店が見つかりましたわ。")
-
+    )
+    LINE_BOT_API.reply_message(
+        event.reply_token,
+        TextSendMessage(text="")
     )
 
 
