@@ -2,14 +2,15 @@
 # -*- coding: utf-8 -*-
 
 """
-app.py : 近くのカレー店を検索してくれるお嬢様LINEBot
+app.py : 近くの飲食店を検索してくれるお嬢様LINEBot
 """
 
 __author__ = 'Hiroto Asakura'
-__version__ = '3.9.15'
-__date__ = '2023/12/1'
+__version__ = '3.11.6'
+__date__ = '2024/2/2'
 
 import json
+import random
 import requests
 
 from flask import Flask, request, abort
@@ -41,6 +42,8 @@ HANDLER = WebhookHandler(info_config["LINE_CHANNEL_SECRET"])
 
 NO_HIT_MESSAGE = info_response["NO_HIT_MESSAGE"]
 
+search_words = ["お腹すいた", "おなかすいた", "お腹空いた", "店検索", "ご飯たべたい", "お店", "ご飯"]
+
 
 # テスト用
 @app.route("/")
@@ -49,7 +52,7 @@ def test() -> str:
     応答テスト
 
     Returns:
-        str : テストOK
+        str : "TEST OK"
     """
     return "TEST OK"
 
@@ -61,7 +64,7 @@ def callback() -> str:
     コールバック関数
 
     Returns:
-        str : ステータスコード
+        str : ステータスコード"OK"
     """
 
     # X-Line-Signature header valueを取得
@@ -81,17 +84,16 @@ def callback() -> str:
     return "OK"
 
 
-def search_curry_shop(latitude, longitude, address_name):
+def search_foodshop(address_name, keyword):
     """
-    APIを使ってカラー店を元に緯度経度を取得する
+    APIを使って飲食店検索する
 
     Args:
-        address_name:
-        latitude (_type_): 緯度
-        longitude (_type_): 経度
+        keyword: キーワード
+        address_name: 住所
 
     Returns:
-        _type_: _description_
+        stores (str): 店情報
     """
 
     url = "https://webservice.recruit.co.jp/hotpepper/gourmet/v1/"
@@ -100,11 +102,9 @@ def search_curry_shop(latitude, longitude, address_name):
 
     elements = {
         'key': api_key,
-        'keyword': 'カレー',
+        'keyword': keyword,
         'address': address_name,
         'format': 'json',
-        'lat': latitude,
-        'lng': longitude,
         'count': 30
     }
 
@@ -116,32 +116,61 @@ def search_curry_shop(latitude, longitude, address_name):
     except KeyError:
         print("Error: Unable to retrieve shop information from the response.")
         return []
-    return stores
+    return random.sample(stores, 3)
 
 
 # メッセージをやり取りする処理
-@HANDLER.add(MessageEvent, message=LocationMessage)
-def handle_location_message(event):
-    user_latitude = event.message.latitude
-    user_longitude = event.message.longitude
-    address_name = event.message.text
-    stores = search_curry_shop(user_latitude, user_longitude, address_name)
-
-    if stores is None:
+@HANDLER.add(MessageEvent, message=TextMessage)
+def handle_message(event):
+    if event.message.text in search_words:
+        # キーワード
         LINE_BOT_API.reply_message(
             event.reply_token,
-            TextSendMessage(text="近くにカレー屋さんがないみたですの。申し訳ございませんわ。")
+            TextSendMessage(text="何が食べたいですの？")
         )
-    genre = stores['genre']['name']
+        keyword = event.message.text
 
-    LINE_BOT_API.reply_message(
-        event.reply_token,
-        TextSendMessage(text="このような店が見つかりましたわ。")
-    )
-    LINE_BOT_API.reply_message(
-        event.reply_token,
-        TextSendMessage(text="")
-    )
+        # アドレス
+        LINE_BOT_API.reply_message(
+            event.reply_token,
+            TextSendMessage(text="どの辺で食べたいですの？")
+        )
+        address_name = event.message.text
+
+        # 検索
+        stores = search_foodshop(address_name, keyword)
+
+        # 店がなかった時の処理
+        if stores is None:
+            LINE_BOT_API.reply_message(
+                event.reply_token,
+                TextSendMessage(text="申し訳ございませんわ"
+                                     "近くに飲食店がなかったみたいですの")
+            )
+            return
+
+        # 応答メッセージ
+        LINE_BOT_API.reply_message(
+            event.reply_token,
+            TextSendMessage(text=f"{keyword}で探した結果、このような店が見つかりましたわ")
+        )
+
+        for store in stores:
+            shop_name: object = store['name']
+            access = store['mobile_access']
+            url = store['urls']
+
+            LINE_BOT_API.reply_message(
+                event.reply_token,
+                TextSendMessage(text=f"{shop_name}{url}"
+                                     f"{access}ですの")
+            )
+
+    else:
+        LINE_BOT_API.reply_message(
+            event.reply_token,
+            TextSendMessage(text="お腹空きましたわねぇ")
+        )
 
 
 if "__main__" == __name__:

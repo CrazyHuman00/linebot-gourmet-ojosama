@@ -2,7 +2,8 @@ PYTHON	= python
 PYDOC	= pydoc
 PYCS	= $(shell find . -name "*.pyc")
 PYCACHE	= $(shell find . -name "__pycache__")
-TARGET	= ./dev/app.py
+TARGET	= ./dev/test.py
+APP     = ./dev/app.py
 MODULE	= app
 ARCHIVE	= $(shell basename `pwd`)
 WORKDIR	= ./
@@ -24,6 +25,9 @@ clean:
 
 test:
 	$(PYTHON) $(TARGET)
+
+app:
+	$(PYTHON) $(APP)
 
 doc:
 	$(PYDOC) ./$(TARGET)
