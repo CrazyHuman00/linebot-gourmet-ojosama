@@ -21,16 +21,10 @@ from linebot.exceptions import (
     InvalidSignatureError
 )
 from linebot.models import (
-    CarouselColumn, CarouselTemplate, FollowEvent,
-    LocationMessage, MessageEvent, TemplateSendMessage,
-    TextMessage, TextSendMessage, UnfollowEvent, URITemplateAction
+    CarouselColumn, CarouselTemplate, MessageEvent, TextMessage, TextSendMessage, TemplateSendMessage
 )
 
 app = Flask(__name__)
-
-# response.jsonから情報を取得
-with open("./json/response.json", "r", encoding="utf8") as file:
-    info_response = json.load(file)
 
 # config.jsonから情報を取得
 with open("./json/config.json", "r", encoding="utf8") as file:
@@ -40,25 +34,13 @@ LINE_BOT_API = LineBotApi(info_config["LINE_CHANNEL_ACCESS_TOKEN"])
 
 HANDLER = WebhookHandler(info_config["LINE_CHANNEL_SECRET"])
 
-NO_HIT_MESSAGE = info_response["NO_HIT_MESSAGE"]
+SEARCH_WORD = ["お腹すいた", "おなかすいた", "お腹空いた", "店検索", "ご飯たべたい", "お店", "ご飯"]
 
-search_words = ["お腹すいた", "おなかすいた", "お腹空いた", "店検索", "ご飯たべたい", "お店", "ご飯"]
-
-
-# テスト用
-@app.route("/")
-def test() -> str:
-    """
-    応答テスト
-
-    Returns:
-        str : "TEST OK"
-    """
-    return "TEST OK"
+sessions = {}
 
 
 # 関数の呼び出し処理
-@app.route("/callback")
+@app.route("/callback", methods=['POST'])
 def callback() -> str:
     """
     コールバック関数
@@ -84,14 +66,13 @@ def callback() -> str:
     return "OK"
 
 
-def search_foodshop(address_name, keyword):
+def search_foodshop(keyword, city_name):
     """
     APIを使って飲食店検索する
 
     Args:
-        keyword: キーワード
-        address_name: 住所
-
+        keyword (str): キーワード
+        city_name (str): 都市名
     Returns:
         stores (str): 店情報
     """
@@ -103,9 +84,9 @@ def search_foodshop(address_name, keyword):
     elements = {
         'key': api_key,
         'keyword': keyword,
-        'address': address_name,
+        'address': city_name,
         'format': 'json',
-        'count': 30
+        'count': 10
     }
 
     response = requests.get(url, elements)
@@ -113,34 +94,43 @@ def search_foodshop(address_name, keyword):
 
     try:
         stores = datum['results']['shop']
+        random_stores = random.sample(stores, 3)
+        return random_stores
     except KeyError:
         print("Error: Unable to retrieve shop information from the response.")
         return []
-    return random.sample(stores, 3)
 
 
 # メッセージをやり取りする処理
 @HANDLER.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    if event.message.text in search_words:
-        # キーワード
+    global sessions
+
+    if not event.source.user_id in sessions.keys():
+        sessions[event.source.user_id] = {"hungry": False, "where": False, "keyword": None, "city_name": None}
+
+    if event.message.text in SEARCH_WORD:
+        sessions[event.source.user_id]["hungry"] = True
         LINE_BOT_API.reply_message(
             event.reply_token,
             TextSendMessage(text="何が食べたいですの？")
         )
-        keyword = event.message.text
 
-        # アドレス
+    elif sessions[event.source.user_id]["hungry"]:
+        sessions[event.source.user_id]["keyword"] = event.message.text
         LINE_BOT_API.reply_message(
             event.reply_token,
             TextSendMessage(text="どの辺で食べたいですの？")
         )
-        address_name = event.message.text
+        sessions[event.source.user_id]["where"] = True
+        sessions[event.source.user_id]["hungry"] = False
 
-        # 検索
-        stores = search_foodshop(address_name, keyword)
+    elif sessions[event.source.user_id]["where"]:
+        sessions[event.source.user_id]["city_name"] = event.message.text
 
-        # 店がなかった時の処理
+        stores = search_foodshop(sessions[event.source.user_id]["keyword"],
+                                 sessions[event.source.user_id]["city_name"])
+
         if stores is None:
             LINE_BOT_API.reply_message(
                 event.reply_token,
@@ -148,23 +138,15 @@ def handle_message(event):
                                      "近くに飲食店がなかったみたいですの")
             )
             return
+        else:
+            columns = []
+            for store in stores:
+                store_name = store['name']
+                access = store['mobile_access']
+                url = store['urls']
+                print(f"{store_name} - {access} - {url}")
 
-        # 応答メッセージ
-        LINE_BOT_API.reply_message(
-            event.reply_token,
-            TextSendMessage(text=f"{keyword}で探した結果、このような店が見つかりましたわ")
-        )
-
-        for store in stores:
-            shop_name: object = store['name']
-            access = store['mobile_access']
-            url = store['urls']
-
-            LINE_BOT_API.reply_message(
-                event.reply_token,
-                TextSendMessage(text=f"{shop_name}{url}"
-                                     f"{access}ですの")
-            )
+            # TODO: 検索した店を表示する
 
     else:
         LINE_BOT_API.reply_message(
@@ -173,8 +155,5 @@ def handle_message(event):
         )
 
 
-if "__main__" == __name__:
-    import os
-
-    port = int(os.getenv("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+if __name__ == "__main__":
+    app.run(host="localhost", port=8000)

@@ -23,8 +23,9 @@ def get_selected_shops(url, elements, num_shops=10):
     except KeyError:
         print("Error: Unable to retrieve shop information from the response.")
         return []
+    random_stores = random.sample(stores, 3)
 
-    return stores
+    return random_stores
 
 
 # ジャンル、店名、アクセスを表示する
