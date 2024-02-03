@@ -52,7 +52,7 @@ ngrok http 8000
 
 
 ## 参考文献
-・[LINE Developers](https://developers.line.biz/ja/reference/messaging-api/#messages)
-・[Pythonで位置情報を活用したLINEボットを作ってみた](https://qiita.com/kotmats/items/8de977eefcbb6d97ec1d)
-・[ホットペッパーAPI](https://webservice.recruit.co.jp/doc/hotpepper/reference.html)
-・[LINE Botで位置情報を活用する](https://qiita.com/siganai_poteto/items/c3863ec05a8a6517f167)
+・[LINE Developers](https://developers.line.biz/ja/reference/messaging-api/#messages)<br>
+・[Pythonで位置情報を活用したLINEボットを作ってみた](https://qiita.com/kotmats/items/8de977eefcbb6d97ec1d)<br>
+・[ホットペッパーAPI](https://webservice.recruit.co.jp/doc/hotpepper/reference.html)<br>
+・[LINE Botで位置情報を活用する](https://qiita.com/siganai_poteto/items/c3863ec05a8a6517f167)<br>
