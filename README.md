@@ -25,6 +25,17 @@ pip install -r requirements.txt
 pip uninstall <package-name>
 ```
 
+### config.jsonの作成
+jsonディレクトリ下でconfig.jsonを作成してください。
+そして、以下のようにLINE DevelopersからLINEチャンネルシークレットとユーザーIDとチャンネルアクセストークンを入力してください。
+```json
+{
+    "LINE_CHANNEL_SECRET": "<YOUR_CODE>",
+    "LINE_CHANNEL_ACCESS_TOKEN": "<YOUR_CODE>",
+    "API_KEY": "<YOUR_CODE>"
+}
+
+```
 
 ### 実行方法
 ディレクトリ下で以下のコマンドを入力してください。
