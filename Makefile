@@ -2,7 +2,6 @@ PYTHON	= python
 PYDOC	= pydoc
 PYCS	= $(shell find . -name "*.pyc")
 PYCACHE	= $(shell find . -name "__pycache__")
-TARGET	= ./dev/test.py
 APP     = ./dev/app.py
 MODULE	= app
 ARCHIVE	= $(shell basename `pwd`)
@@ -23,14 +22,11 @@ clean:
 	@for each in ${PYCACHE} ; do echo "rm -f $${each}" ; rm -rf $${each} ; done
 	@if [ -e $(LINTRST) ] ; then echo "rm -f $(LINTRST)" ; rm -f $(LINTRST) ; fi
 
-test:
-	$(PYTHON) $(TARGET)
-
 app:
 	$(PYTHON) $(APP)
 
 doc:
-	$(PYDOC) ./$(TARGET)
+	$(PYDOC) ./$(APP)
 
 zip: wipe
 	(cd ../ ; zip -r ./$(ARCHIVE).zip ./$(ARCHIVE)/ --exclude='*/.svn/*')

@@ -1,0 +1,4 @@
+Flask==3.0.1
+line-bot-sdk==3.7.0
+pylint==3.0.3
+requests==2.31.0

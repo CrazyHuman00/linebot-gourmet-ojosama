@@ -21,7 +21,7 @@ from linebot.exceptions import (
     InvalidSignatureError
 )
 from linebot.models import (
-    CarouselColumn, CarouselTemplate, MessageEvent, TextMessage, TextSendMessage, TemplateSendMessage
+    MessageEvent, TextMessage, TextSendMessage
 )
 
 app = Flask(__name__)
@@ -36,7 +36,7 @@ HANDLER = WebhookHandler(info_config["LINE_CHANNEL_SECRET"])
 
 SEARCH_WORD = ["お腹すいた", "おなかすいた", "お腹空いた", "店検索", "ご飯たべたい", "お店", "ご飯"]
 
-sessions = {}
+sessions = {"hungry": False, "where": False, "keyword": None, "city_name": None}
 
 
 # 関数の呼び出し処理
@@ -74,7 +74,7 @@ def search_foodshop(keyword, city_name):
         keyword (str): キーワード
         city_name (str): 都市名
     Returns:
-        stores (str): 店情報
+        shops (str): 店情報
     """
 
     url = "https://webservice.recruit.co.jp/hotpepper/gourmet/v1/"
@@ -93,9 +93,9 @@ def search_foodshop(keyword, city_name):
     datum = response.json()
 
     try:
-        stores = datum['results']['shop']
-        random_stores = random.sample(stores, 3)
-        return random_stores
+        shops = datum['results']['shop']
+        random_shops = random.sample(shops, 3)
+        return random_shops
     except KeyError:
         print("Error: Unable to retrieve shop information from the response.")
         return []
@@ -116,6 +116,14 @@ def handle_message(event):
             TextSendMessage(text="何が食べたいですの？")
         )
 
+    elif event.message.text == "ありがとう":
+        LINE_BOT_API.reply_message(
+            event.reply_token,
+            TextSendMessage(
+                text="どういたしましてですの♪"
+            )
+        )
+
     elif sessions[event.source.user_id]["hungry"]:
         sessions[event.source.user_id]["keyword"] = event.message.text
         LINE_BOT_API.reply_message(
@@ -128,31 +136,46 @@ def handle_message(event):
     elif sessions[event.source.user_id]["where"]:
         sessions[event.source.user_id]["city_name"] = event.message.text
 
-        stores = search_foodshop(sessions[event.source.user_id]["keyword"],
-                                 sessions[event.source.user_id]["city_name"])
+        shops = search_foodshop(sessions[event.source.user_id]["keyword"],
+                                sessions[event.source.user_id]["city_name"])
 
-        if stores is None:
+        columns = []
+        if shops is None:
             LINE_BOT_API.reply_message(
                 event.reply_token,
                 TextSendMessage(text="申し訳ございませんわ"
                                      "近くに飲食店がなかったみたいですの")
             )
             return
-        else:
-            columns = []
-            for store in stores:
-                store_name = store['name']
-                access = store['mobile_access']
-                url = store['urls']
-                print(f"{store_name} - {access} - {url}")
 
-            # TODO: 検索した店を表示する
+        for shop_info in shops:
+            shop_name = shop_info.get('name')
+            access = shop_info.get('mobile_access')
+            url = shop_info.get('urls').get('pc')
+            polite_ending = ["ます。", "です。"]
+            if access[:-3] in polite_ending:
+                access = access[:-3]
+            columns.append([shop_name, access, url])
+
+        result_message = ""
+        for shop_name, access, url in columns:
+            reply_text = f"このような店が見つかりましたわ\n{shop_name}\n{url}\n{access}のところにありますの\n"
+            result_message += reply_text + "\n"
+
+        LINE_BOT_API.reply_message(
+            event.reply_token,
+            TextSendMessage(
+                text=result_message
+            )
+        )
 
     else:
         LINE_BOT_API.reply_message(
             event.reply_token,
             TextSendMessage(text="お腹空きましたわねぇ")
         )
+
+# TODO: 位置情報からでも検索できる機能の作成
 
 
 if __name__ == "__main__":
