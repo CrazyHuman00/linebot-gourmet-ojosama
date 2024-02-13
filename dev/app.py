@@ -107,10 +107,11 @@ def handle_message(event):
     global sessions
 
     if not event.source.user_id in sessions.keys():
-        sessions[event.source.user_id] = {"hungry": False, "where": False, "keyword": None, "city_name": None}
+        sessions[event.source.user_id] = {"hungry_flag": False, "where_flag": False,
+                                          "keyword": None, "city_name": None}
 
     if event.message.text in SEARCH_WORD:
-        sessions[event.source.user_id]["hungry"] = True
+        sessions[event.source.user_id]["hungry_flag"] = True
         LINE_BOT_API.reply_message(
             event.reply_token,
             TextSendMessage(text="何が食べたいですの？")
@@ -124,16 +125,16 @@ def handle_message(event):
             )
         )
 
-    elif sessions[event.source.user_id]["hungry"]:
+    elif sessions[event.source.user_id]["hungry_flag"]:
         sessions[event.source.user_id]["keyword"] = event.message.text
+        sessions[event.source.user_id]["where_flag"] = True
+        sessions[event.source.user_id]["hungry_flag"] = False
         LINE_BOT_API.reply_message(
             event.reply_token,
             TextSendMessage(text="どの辺で食べたいですの？")
         )
-        sessions[event.source.user_id]["where"] = True
-        sessions[event.source.user_id]["hungry"] = False
 
-    elif sessions[event.source.user_id]["where"]:
+    elif sessions[event.source.user_id]["where_flag"]:
         sessions[event.source.user_id]["city_name"] = event.message.text
 
         shops = search_foodshop(sessions[event.source.user_id]["keyword"],
@@ -175,8 +176,8 @@ def handle_message(event):
             TextSendMessage(text="お腹空きましたわねぇ")
         )
 
-# TODO: 位置情報からでも検索できる機能の作成
 
+# TODO: 位置情報からでも検索できる機能の作成
 
 if __name__ == "__main__":
     app.run(host="localhost", port=8000)
