@@ -9,6 +9,9 @@
 「お腹すいた」などの腹減ったアピールコメントしてください。
 すると「何が食べたいですの」と返信が返ってくるので、返信の流れに沿って答えてください。
 
+## 設計
+[設計図](https://drive.google.com/drive/u/0/folders/1CLCeQtipF-mGKyMTp7uNTOTFXJI2gmcw)
+
 ### API
 ・[LINE Developers](https://developers.line.biz/ja/reference/messaging-api/#messages)<br>
 ・[ホットペッパーAPI](https://webservice.recruit.co.jp/doc/hotpepper/reference.html)<br>
