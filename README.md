@@ -12,6 +12,9 @@
 ## 設計
 [設計図](https://drive.google.com/drive/u/0/folders/1CLCeQtipF-mGKyMTp7uNTOTFXJI2gmcw)
 
+## 開発手順
+cloudflareで実装することを検討中
+
 ### API
 ・[LINE Developers](https://developers.line.biz/ja/reference/messaging-api/#messages)<br>
 ・[ホットペッパーAPI](https://webservice.recruit.co.jp/doc/hotpepper/reference.html)<br>

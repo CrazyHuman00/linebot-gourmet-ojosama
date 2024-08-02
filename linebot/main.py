@@ -27,18 +27,13 @@ from linebot.v3.webhooks import (
     TextMessageContent
 )
 
-import json
-
 app = Flask(__name__)
 
-# config.jsonから情報を取得
-with open("config.json", "r", encoding="utf8") as file:
-    info_config = json.load(file)
+LINE_CHANNEL_ACCESS_TOKEN = os.environ.get("LINE_CHANNEL_ACCESS_TOKEN")
+LINE_CHANNEL_SECRET = os.environ.get("LINE_CHANNEL_SECRET")
+configuration = Configuration(LINE_CHANNEL_ACCESS_TOKEN)
+handler = WebhookHandler(LINE_CHANNEL_SECRET)
 
-configuration = Configuration(access_token=info_config["LINE_CHANNEL_ACCESS_TOKEN"])
-handler = WebhookHandler(info_config["LINE_CHANNEL_SECRET"])
-
-SEARCH_WORD = ["お腹すいた"]
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -71,5 +66,10 @@ def handle_message(event):
         )
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 80))
-    app.run(host="0.0.0.0", port=port, debug=False)
+    # app.run(threaded=True)
+    # デバッグ
+    app.run(host="0.0.0.0", port=8080, threaded=True, debug=True)
+
+# GCFで実装するとき
+# def main(request):
+#    return app(request)

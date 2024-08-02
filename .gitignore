@@ -1,2 +1,4 @@
 opinion
-linebot/config.json
+.env
+
+python-workers-examples/
