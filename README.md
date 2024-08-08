@@ -20,4 +20,3 @@ cloudflareで実装することを検討中
 ・[ホットペッパーAPI](https://webservice.recruit.co.jp/doc/hotpepper/reference.html)<br>
 
 ### 参考文献
-・[Pythonで位置情報を活用したLINEボットを作ってみた](https://qiita.com/kotmats/items/8de977eefcbb6d97ec1d)<br>
