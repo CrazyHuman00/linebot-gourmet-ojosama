@@ -5,6 +5,15 @@
 まず「お腹すいた」などのメッセージを入力すると、キーワードを求める返信が届きます。
 その後、自分の探したい地名を入力することでキーワードに基づき、その周辺の飲食店をランダムに返信します。
 
+## 開発のきっかけ
+ユーザーが飲食店を探す際、単なる検索では味気なく感じることがあり、楽しみながら選ぶことができるツールが求められていると感じたためです。
+
+## モチベーション
+ユーザーにユニークで楽しい体験を提供することで、飲食店検索のプロセスを楽しめるものにし、同時にキャラクターとしてのお嬢様の魅力を通じてユーザーの心をつかむことを目指します。
+
+## カスタマイズ性
+ユーザーが自身の好みに応じてお嬢様の口調やアイコン、セリフをカスタマイズできます。
+
 ## 使い方
 「お腹すいた」などの腹減ったアピールコメントしてください。
 すると「何が食べたいですの」と返信が返ってくるので、返信の流れに沿って答えてください。
@@ -16,7 +25,8 @@
 cloudflareで実装することを検討中
 
 ### API
-・[LINE Developers](https://developers.line.biz/ja/reference/messaging-api/#messages)<br>
-・[ホットペッパーAPI](https://webservice.recruit.co.jp/doc/hotpepper/reference.html)<br>
+・[LINE Developers](https://developers.line.biz/ja/reference/messaging-api/#messages)
+・[ホットペッパーAPI](https://webservice.recruit.co.jp/doc/hotpepper/reference.html)
+・OpenAI
 
 ### 参考文献

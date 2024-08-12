@@ -10,15 +10,14 @@ import requests
 import random
 
 URL = 'http://webservice.recruit.co.jp/hotpepper/gourmet/v1/'
-API_KEY = os.environ.get("LINE_CHANNEL_SECRET")
+API_KEY = os.environ.get("HOT_PEPPER_API_KEY")
 
-def search_restaurant():
-    a = 10
+class Search:
+    def __init__(self) -> None:
+        pass
 
-def trigger():
-    body = {
-    'key': API_KEY,
-    'keyword': "中華",
-    'format': 'json',
-    'count': 100
-    }
+    def trigger():
+        pass
+
+    def search_restaurant():
+        pass
